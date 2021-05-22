@@ -1,5 +1,8 @@
 package br.com.bandtec.avaliacaocontinuadatres.controller;
 
+import br.com.bandtec.avaliacaocontinuadatres.exportacao.Exportacao;
+import br.com.bandtec.avaliacaocontinuadatres.exportacao.ListaObj;
+import br.com.bandtec.avaliacaocontinuadatres.exportacao.PilhaObj;
 import br.com.bandtec.avaliacaocontinuadatres.model.Atleta;
 import br.com.bandtec.avaliacaocontinuadatres.model.TipoDefault;
 import br.com.bandtec.avaliacaocontinuadatres.repository.AtletaRepository;
@@ -9,11 +12,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
 
 @RequestMapping("/atletas")
 @RestController
 public class AtletaController {
+
+    Exportacao exportacao = new Exportacao();
+    PilhaObj<Integer> atletaPilhaObj = new PilhaObj<>(1);
 
     @Autowired
     private AtletaRepository repository;
@@ -35,6 +47,8 @@ public class AtletaController {
     @PostMapping
     public ResponseEntity postAtleta(@RequestBody Atleta atleta){
         if (tipoNadadorRepository.existsById(atleta.getTipoNadador().getId()) || corredorRepository.existsById(atleta.getTipoCorredor().getId())) {
+            atletaPilhaObj.push(atleta.getId());
+            atletaPilhaObj.exibe();
             repository.save(atleta);
             return ResponseEntity.status(201).build();
         }else{
@@ -65,6 +79,43 @@ public class AtletaController {
             atleta.setId(id);
             return repository.save(atleta);
         });
+    }
+
+    @GetMapping("/download/{isCsv}")
+    public ResponseEntity getDownloadAtletas(HttpServletResponse response, @PathVariable("isCsv") boolean isCsv) throws IOException {
+        List<Atleta> atletaList = repository.findAll();
+        ListaObj<Atleta> atletaListaObj = new ListaObj<>(atletaList.size());
+
+        for (int i = 0; i < atletaList.size(); i++) {
+            Atleta atleta = atletaList.get(i);
+            atletaListaObj.adiciona(atleta);
+        }
+        exportacao.gravaLista(atletaListaObj,isCsv,"Atletas");
+
+        String downloadFolder = "src/main/resources/static/";
+
+        if (isCsv) {
+            Path file = Paths.get(downloadFolder, "Atletas.csv");
+            response.setContentType("text/csv");
+            response.addHeader("Content-Disposition","attachment; filename=Atletas.csv");
+            Files.copy(file, response.getOutputStream());
+            response.getOutputStream().flush();
+        }else {
+            Path file = Paths.get(downloadFolder, "Atletas.txt");
+            response.setContentType("text/plain");
+            response.addHeader("Content-Disposition","attachment; filename=Atletas.txt");
+            Files.copy(file,response.getOutputStream());
+            response.getOutputStream().flush();
+        }
+        return ResponseEntity.status(200).build();
+    }
+
+
+    @DeleteMapping("/desfazer")
+    public ResponseEntity deleteDesfazer(){
+        Integer pilha = atletaPilhaObj.pop();
+        repository.deleteById(pilha);
+        return ResponseEntity.status(200).build();
     }
 
 }

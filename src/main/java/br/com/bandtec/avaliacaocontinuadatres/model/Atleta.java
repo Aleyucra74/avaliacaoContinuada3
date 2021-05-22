@@ -6,7 +6,6 @@ import javax.persistence.*;
 public class Atleta {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String nomeAtleta;
