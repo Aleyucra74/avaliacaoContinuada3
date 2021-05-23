@@ -19,6 +19,19 @@ public class Atleta {
 
     @ManyToOne
     private TipoNadador tipoNadador;
+//
+//    public Atleta(Integer id, String nomeAtleta, Integer treinoPorDia, String tipoDieta, TipoCorredor tipoCorredor, TipoNadador tipoNadador) {
+//        this.id = id;
+//        this.nomeAtleta = nomeAtleta;
+//        this.treinoPorDia = treinoPorDia;
+//        this.tipoDieta = tipoDieta;
+//        this.tipoCorredor = tipoCorredor;
+//        this.tipoNadador = tipoNadador;
+//    }
+//
+//    public Atleta(Integer id, String nomeAtleta, Integer treinoPorDia, String tipoDieta, String tipoCorredor, String tipoNadador) {
+//
+//    }
 
     public Integer getId() {
         return id;

@@ -4,7 +4,9 @@ import br.com.bandtec.avaliacaocontinuadatres.exportacao.Exportacao;
 import br.com.bandtec.avaliacaocontinuadatres.exportacao.ListaObj;
 import br.com.bandtec.avaliacaocontinuadatres.exportacao.PilhaObj;
 import br.com.bandtec.avaliacaocontinuadatres.model.Atleta;
+import br.com.bandtec.avaliacaocontinuadatres.model.TipoCorredor;
 import br.com.bandtec.avaliacaocontinuadatres.model.TipoDefault;
+import br.com.bandtec.avaliacaocontinuadatres.model.TipoNadador;
 import br.com.bandtec.avaliacaocontinuadatres.repository.AtletaRepository;
 import br.com.bandtec.avaliacaocontinuadatres.repository.TipoCorredorRepository;
 import br.com.bandtec.avaliacaocontinuadatres.repository.TipoNadadorRepository;
@@ -14,11 +16,16 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @RequestMapping("/atletas")
 @RestController
@@ -26,6 +33,7 @@ public class AtletaController {
 
     Exportacao exportacao = new Exportacao();
     PilhaObj<Integer> atletaPilhaObj = new PilhaObj<>(1);
+    TipoController tipoController = new TipoController();
 
     @Autowired
     private AtletaRepository repository;
@@ -110,12 +118,72 @@ public class AtletaController {
         return ResponseEntity.status(200).build();
     }
 
-
     @DeleteMapping("/desfazer")
     public ResponseEntity deleteDesfazer(){
         Integer pilha = atletaPilhaObj.pop();
         repository.deleteById(pilha);
         return ResponseEntity.status(200).build();
+    }
+
+    @PostMapping("/async/novo-atleta")
+    public ResponseEntity postAsyncMethod(){
+        LocalDateTime previsao = LocalDateTime.now().plusSeconds(16);
+        Integer numero = ThreadLocalRandom.current().nextInt(0,100);
+
+
+        Thread sorteador = new Thread(() -> {
+            try {
+
+                Thread.sleep(10000);
+
+//                ListaObj<TipoDefault> lista = (ListaObj<TipoDefault>) tipoController.getTipo().getBody();
+
+//                Integer random = ThreadLocalRandom.current().nextInt(0, lista.getTamanho());
+
+//                TipoCorredor randomCorredor = new TipoCorredor(123,"plano");
+//                TipoNadador randomNadador = new TipoNadador(234,"costas");
+////            tipocorredor getcorredor = tipoController.getTipoNadador().getBody();
+                TipoCorredor getCorredor = new TipoCorredor();
+                getCorredor.setId(1);
+                getCorredor.setTipo("borboleta");
+
+                TipoNadador getNadador = new TipoNadador();
+                getNadador.setId(1);
+                getNadador.setTipo("2km");
+
+                Atleta novoAtleta = new Atleta();
+                novoAtleta.setId(numero);
+                novoAtleta.setNomeAtleta("Felps");
+                novoAtleta.setTreinoPorDia(8);
+                novoAtleta.setTipoDieta("lowcarb");
+                novoAtleta.setTipoCorredor(getCorredor);
+                novoAtleta.setTipoNadador(getNadador);
+
+                repository.save(novoAtleta);
+
+            }catch (InterruptedException e){
+                e.printStackTrace();
+            }
+        });
+        sorteador.start();
+        return ResponseEntity.status(202)
+                .header("protocolo", String.valueOf(numero))
+                .header("previsao", previsao.toString())
+                .body("Em 1minuto estara um novo atleta adicionado");
+    }
+
+    @GetMapping("/{protocolo}")
+    public ResponseEntity getProtocolo(@PathVariable Integer numero){
+        Optional<Atleta> optionalAtleta = repository.findById(numero);
+
+        if (optionalAtleta.isPresent()){
+            return ResponseEntity.status(200).body("Novo Atleta:"+
+                    optionalAtleta.get().getNomeAtleta());
+        }else{
+            LocalDateTime previsao = LocalDateTime.now().plusSeconds(15);
+            return ResponseEntity.status(404).header("previsao",previsao.toString()).build();
+        }
+
     }
 
 }
