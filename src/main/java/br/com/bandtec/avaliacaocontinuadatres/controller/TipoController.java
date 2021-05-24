@@ -22,8 +22,8 @@ public class TipoController {
     @Autowired
     private TipoCorredorRepository corredorRepository;
 
-    @GetMapping("/{id}")
-    public TipoCorredor getTipo(@PathVariable Integer id){
+    @GetMapping("/corredor/{id}")
+    public TipoCorredor getTipoCorredor(@PathVariable Integer id){
         Optional<TipoCorredor> tipoCorredor = corredorRepository.findById(id);
 
         return tipoCorredor.orElse(null);
@@ -35,5 +35,16 @@ public class TipoController {
         return tipoNadador.orElse(null);
     }
 
+    @GetMapping("/corredor-id/{tipo}")
+    public TipoCorredor getTipoCorredorPorId(@PathVariable String tipo){
+        TipoCorredor tipoNadador = corredorRepository.encontrarPorId(tipo);
+        return tipoNadador;
+    }
+
+    @GetMapping("/nadador-id/{tipo}")
+    public TipoNadador getTipoNadadorPorId(@PathVariable String tipo){
+        TipoNadador tipoNadador = tipoNadadorRepository.encontrarPorId(tipo);
+        return tipoNadador;
+    }
 
 }

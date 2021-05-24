@@ -1,19 +1,25 @@
 package br.com.bandtec.avaliacaocontinuadatres.exportacao;
 
 import br.com.bandtec.avaliacaocontinuadatres.controller.AtletaController;
+import br.com.bandtec.avaliacaocontinuadatres.controller.TipoController;
+import br.com.bandtec.avaliacaocontinuadatres.interfaces.TipoCorredorInterface;
+import br.com.bandtec.avaliacaocontinuadatres.interfaces.TipoNadadorInterface;
 import br.com.bandtec.avaliacaocontinuadatres.model.Atleta;
 import br.com.bandtec.avaliacaocontinuadatres.model.TipoCorredor;
+import br.com.bandtec.avaliacaocontinuadatres.model.TipoNadador;
+import br.com.bandtec.avaliacaocontinuadatres.repository.TipoCorredorRepository;
+import br.com.bandtec.avaliacaocontinuadatres.repository.TipoNadadorRepository;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Exportacao {
 
     static ListaObj<Atleta> atletaListaObj;
+    TipoCorredorRepository corredorRepository;
+    TipoNadadorRepository tipoNadadorRepository;
+    TipoController tipoController;
 
     public void gravaLista(ListaObj<Atleta> projetos, boolean isCSV, String nomeArquivo) {
         FileWriter arq = null;
@@ -115,8 +121,11 @@ public class Exportacao {
                     detail += String.format("%-15s", projeto.getNomeAtleta());
                     detail += String.format("%-15s", projeto.getTreinoPorDia());
                     detail += String.format("%-10s", projeto.getTipoDieta());
-                    detail += String.format("%-15s", projeto.getTipoNadador().getTipo());
-                    detail += String.format("%-15s", projeto.getTipoCorredor().getTipo())+"\n";
+
+                    detail += String.format("%-2s", projeto.getTipoNadador().getId());
+                    detail += String.format("%-10s", projeto.getTipoNadador().getTipo());
+                    detail += String.format("%-2s", projeto.getTipoCorredor().getId());
+                    detail += String.format("%-10s", projeto.getTipoCorredor().getTipo())+"\n";
 
                     saida.format(detail);
                 }
@@ -145,68 +154,118 @@ public class Exportacao {
         }
     }
 
-    public static void leExibeArquivo(boolean isCSV, String nomeArquivo) {
-        FileReader arq= null;
-        Scanner entrada = null;
-        boolean deuRuim= false;
+    public ListaObj<Atleta> leArquivo(String nomeArq) {
+        ListaObj<Atleta> atletaUpload = new ListaObj<>(15);
+        BufferedReader entrada = null;
+        String registro;
+        String tipoRegistro;
 
-        if (isCSV) {
-            nomeArquivo += ".csv";
-        }
-        else {
-            nomeArquivo += ".txt";
-        }
+        String nomeAtleta, tipoDieta,tipoCorredorTipo,tipoNadadorTipo;
+        int id, treinoPorDia,tipoCorredorId,tipoNadadorId;
 
+        int contRegistro=0;
+
+        // Abre o arquivo
         try {
-            arq = new FileReader(nomeArquivo);
-            if (isCSV) {
-                entrada = new Scanner(arq).useDelimiter(";|\\r\\n");
-            }
-            else {
-                entrada = new Scanner(arq);
-            }
-        }
-        catch (FileNotFoundException erro) {
-            System.err.println("Arquivo não encontrado");
-            System.exit(1);
+            entrada = new BufferedReader(new FileReader(nomeArq));
+        } catch (IOException e) {
+            System.err.printf("Erro na abertura do arquivo: %s.\n", e.getMessage());
         }
 
+        // Lê os registros do arquivo
         try {
+            // Lê um registro
+            registro = entrada.readLine();
 
-            // Enquanto tem registro a ser lido
-            while (entrada.hasNext()) {
-                Integer id = entrada.nextInt();			// Lê o id
-                String nomeAtleta = entrada.next();			// Lê o nome
-                Integer treinoPorDia = entrada.nextInt();          // Lê o porte
-                String tipoDieta = entrada.next();		// Lê o peso
-                String tipoCorredor = entrada.next();		// Lê o peso
-                String tipoNadador = entrada.next();		// Lê o peso
-//                atletaListaObj.adiciona(new Atleta(id,nomeAtleta,treinoPorDia,tipoDieta,tipoCorredor,tipoNadador));
+            while (registro != null) {
+                // Obtém o tipo do registro
+                tipoRegistro = registro.substring(0, 2); // obtém os 2 primeiros caracteres do registro
+
+//                if (tipoRegistro.equals("00")) {
+//                    System.out.println("Header");
+//                    System.out.println("Tipo de arquivo: " + registro.substring(2, 6));
+//                    int periodoLetivo= Integer.parseInt(registro.substring(6,11));
+//                    System.out.println("Período letivo: " + periodoLetivo);
+//                    System.out.println("Data/hora de geração do arquivo: " + registro.substring(11,30));
+//                    System.out.println("Versão do layout: " + registro.substring(30,32));
+//                }
+//                else if (tipoRegistro.equals("01")) {
+//                    System.out.println("\nTrailer");
+//                    int qtdRegistro = Integer.parseInt(registro.substring(2,12));
+//                    if (qtdRegistro == contRegistro) {
+//                        System.out.println("Quantidade de registros gravados compatível com quantidade lida");
+//                    }
+//                    else {
+//                        System.out.println("Quantidade de registros gravados não confere com quantidade lida");
+//                    }
+//                }
+//                else
+                if (tipoRegistro.equals("11")) {
+//                    if (contRegistro == 0) {
+//                        System.out.println();
+//                        System.out.printf("%-5s %-8s %-50s %-40s %5s %6s\n", "CURSO","RA","NOME DO ALUNO","DISCIPLINA",
+//                                "MÉDIA", "FALTAS");
+//
+//                    }
+                    id = Integer.parseInt(registro.substring(2,17).trim());
+                    nomeAtleta = registro.substring(17,32).trim();
+                    treinoPorDia = Integer.parseInt(registro.substring(32,47).trim());
+                    tipoDieta = registro.substring(47,57).trim();
+
+                    tipoCorredorId = Integer.parseInt(registro.substring(57,58).trim());
+                    tipoCorredorTipo= registro.substring(58,69);
+//
+                    tipoNadadorId = Integer.parseInt(registro.substring(69,71).trim());
+                    tipoNadadorTipo = registro.substring(71,81).trim();
+
+                    System.out.printf(
+                            "%-15d %-15s %-15d %-10s %-2d %-10s %-2d %-10s\n",
+                            id,
+                            nomeAtleta,
+                            treinoPorDia,
+                            tipoDieta,
+                            tipoCorredorId,
+                            tipoCorredorTipo,
+                            tipoNadadorId,
+                            tipoNadadorTipo
+                    );
+                    TipoCorredor tipo = new TipoCorredor();
+                    tipo.setId(tipoCorredorId);
+                    tipo.setTipo(tipoCorredorTipo);
+
+                    TipoNadador tipoN = new TipoNadador();
+                    tipoN.setId(tipoNadadorId);
+                    tipoN.setTipo(tipoNadadorTipo);
+
+                    System.out.println(tipo);
+                    System.out.println(tipoN);
+
+                    Atleta novoAtleta = new Atleta();
+
+                    novoAtleta.setId(id);
+                    novoAtleta.setNomeAtleta(nomeAtleta);
+                    novoAtleta.setTreinoPorDia(treinoPorDia);
+                    novoAtleta.setTipoDieta(tipoDieta);
+                    novoAtleta.setTipoCorredor(tipo);
+                    novoAtleta.setTipoNadador(tipoN);
+                    atletaUpload.adiciona(novoAtleta);
+
+                    contRegistro++;
+                }
+                else {
+                    System.out.println("Tipo de registro inválido");
+                }
+
+                // lê o próximo registro
+                registro = entrada.readLine();
             }
-        }
-        catch (NoSuchElementException erro)
-        {
-            System.err.println("Arquivo com problemas.");
-            deuRuim = true;
-        }
-        catch (IllegalStateException erro)
-        {
-            System.err.println("Erro na leitura do arquivo.");
-            deuRuim = true;
-        }
-        finally {
+
+            // Fecha o arquivo
             entrada.close();
-            try {
-                arq.close();
-            }
-            catch (IOException erro) {
-                System.err.println("Erro ao fechar arquivo.");
-                deuRuim = true;
-            }
-            if (deuRuim) {
-                System.exit(1);
-            }
+        } catch (IOException e) {
+            System.err.printf("Erro ao ler arquivo: %s.\n", e.getMessage());
         }
-    }
 
+        return atletaUpload;
+    }
 }

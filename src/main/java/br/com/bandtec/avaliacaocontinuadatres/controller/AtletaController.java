@@ -13,6 +13,7 @@ import br.com.bandtec.avaliacaocontinuadatres.repository.TipoNadadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -184,6 +185,21 @@ public class AtletaController {
             return ResponseEntity.status(404).header("previsao",previsao.toString()).build();
         }
 
+    }
+
+    @GetMapping("/upload")
+    public ResponseEntity postGuardarArquivo(@RequestParam MultipartFile arquivo)throws IOException{
+        byte[] conteudo = arquivo.getBytes();
+
+        Path path = Paths.get(arquivo.getOriginalFilename());
+        Files.write(path,conteudo);
+//        exportacao.leArquivo(arquivo.getOriginalFilename());
+        ListaObj<Atleta> novosAtletas = exportacao.leArquivo(arquivo.getOriginalFilename());
+        for (int i = 0; i < novosAtletas.getTamanho(); i++) {
+            postAtleta(novosAtletas.getElemento(i));
+        }
+
+        return ResponseEntity.status(201).build();
     }
 
 }
