@@ -1,9 +1,8 @@
-00PROJETO2021123-05-2021 23:54:0901
-11123            jose           2              lowcarb   2 peito     1 2km       
-11456            paulo          5              highcarb  1 borboleta 1 2km       
-11789            henrique       6              diety     2 peito     2 100 metros
-02000000000300PROJETO2021123-05-2021 23:55:4001
-11123            jose           2              lowcarb   2 peito     1 2km       
-11456            paulo          5              highcarb  1 borboleta 1 2km       
-11789            henrique       6              diety     2 peito     2 100 metros
-020000000003
+00PROJETO2021124-05-2021 22:40:1701
+112 peito     1 2km       
+111 borboleta 1 2km       
+112 peito     2 100 metros
+12123            jose           2              lowcarb   
+12456            paulo          5              highcarb  
+12789            henrique       6              diety     
+020000000006

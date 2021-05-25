@@ -193,7 +193,7 @@ public class AtletaController {
 
         Path path = Paths.get(arquivo.getOriginalFilename());
         Files.write(path,conteudo);
-//        exportacao.leArquivo(arquivo.getOriginalFilename());
+        exportacao.leArquivo(arquivo.getOriginalFilename());
         ListaObj<Atleta> novosAtletas = exportacao.leArquivo(arquivo.getOriginalFilename());
         for (int i = 0; i < novosAtletas.getTamanho(); i++) {
             postAtleta(novosAtletas.getElemento(i));

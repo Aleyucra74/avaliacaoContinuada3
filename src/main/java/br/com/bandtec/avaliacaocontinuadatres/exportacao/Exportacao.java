@@ -111,24 +111,31 @@ public class Exportacao {
 //                        break;
 //                    }
 //                }
-
-                for (int i = 0;i< projetos.getTamanho();i++) {
+                for (int i = 0; i < projetos.getTamanho(); i++) {
                     Atleta projeto = projetos.getElemento(i);
                     detail = contRegister>0 ? "11" : detail+"11";
-
                     contRegister++;
-                    detail += String.format("%-15s", projeto.getId());
-                    detail += String.format("%-15s", projeto.getNomeAtleta());
-                    detail += String.format("%-15s", projeto.getTreinoPorDia());
-                    detail += String.format("%-10s", projeto.getTipoDieta());
 
                     detail += String.format("%-2s", projeto.getTipoNadador().getId());
                     detail += String.format("%-10s", projeto.getTipoNadador().getTipo());
                     detail += String.format("%-2s", projeto.getTipoCorredor().getId());
                     detail += String.format("%-10s", projeto.getTipoCorredor().getTipo())+"\n";
+                    saida.format(detail);
 
+                }
+
+                for (int i = 0;i< projetos.getTamanho();i++) {
+                    Atleta projeto = projetos.getElemento(i);
+                    detail = contRegister>0 ? "12" : detail+"12";
+
+                    contRegister++;
+                    detail += String.format("%-15s", projeto.getId());
+                    detail += String.format("%-15s", projeto.getNomeAtleta());
+                    detail += String.format("%-15s", projeto.getTreinoPorDia());
+                    detail += String.format("%-10s", projeto.getTipoDieta())+"\n";
                     saida.format(detail);
                 }
+
 
                 trailer += "02";
                 trailer += String.format("%010d",contRegister);
@@ -156,6 +163,8 @@ public class Exportacao {
 
     public ListaObj<Atleta> leArquivo(String nomeArq) {
         ListaObj<Atleta> atletaUpload = new ListaObj<>(15);
+        FilaObj<TipoNadador> tipoNadadorListaObj = new FilaObj<>(15);
+        FilaObj<TipoCorredor> tipoCorredorListaObj = new FilaObj<>(15);
         BufferedReader entrada = null;
         String registro;
         String tipoRegistro;
@@ -181,42 +190,40 @@ public class Exportacao {
                 // Obtém o tipo do registro
                 tipoRegistro = registro.substring(0, 2); // obtém os 2 primeiros caracteres do registro
 
-//                if (tipoRegistro.equals("00")) {
-//                    System.out.println("Header");
-//                    System.out.println("Tipo de arquivo: " + registro.substring(2, 6));
-//                    int periodoLetivo= Integer.parseInt(registro.substring(6,11));
-//                    System.out.println("Período letivo: " + periodoLetivo);
-//                    System.out.println("Data/hora de geração do arquivo: " + registro.substring(11,30));
-//                    System.out.println("Versão do layout: " + registro.substring(30,32));
-//                }
-//                else if (tipoRegistro.equals("01")) {
-//                    System.out.println("\nTrailer");
-//                    int qtdRegistro = Integer.parseInt(registro.substring(2,12));
-//                    if (qtdRegistro == contRegistro) {
-//                        System.out.println("Quantidade de registros gravados compatível com quantidade lida");
-//                    }
-//                    else {
-//                        System.out.println("Quantidade de registros gravados não confere com quantidade lida");
-//                    }
-//                }
-//                else
                 if (tipoRegistro.equals("11")) {
-//                    if (contRegistro == 0) {
-//                        System.out.println();
-//                        System.out.printf("%-5s %-8s %-50s %-40s %5s %6s\n", "CURSO","RA","NOME DO ALUNO","DISCIPLINA",
-//                                "MÉDIA", "FALTAS");
-//
-//                    }
+                    TipoCorredor tipo = new TipoCorredor();
+                    TipoNadador tipoN = new TipoNadador();
+
+                    tipoCorredorId = Integer.parseInt(registro.substring(2,4).trim());
+                    tipoCorredorTipo= registro.substring(4,14);
+
+                    tipoNadadorId = Integer.parseInt(registro.substring(14,16).trim());
+                    tipoNadadorTipo = registro.substring(16,26).trim();
+
+                    tipo.setId(tipoCorredorId);
+                    tipo.setTipo(tipoCorredorTipo);
+
+                    tipoN.setId(tipoNadadorId);
+                    tipoN.setTipo(tipoNadadorTipo);
+                    tipoNadadorListaObj.insert(tipoN);
+                    tipoCorredorListaObj.insert(tipo);
+                    System.out.printf(
+                            "%-2d %-10s %-2d %-10s\n",
+                            tipo.getId(),
+                            tipo.getTipo(),
+                            tipoN.getId(),
+                            tipoN.getTipo()
+                    );
+
+                }
+                if (tipoRegistro.equals("12")) {
                     id = Integer.parseInt(registro.substring(2,17).trim());
                     nomeAtleta = registro.substring(17,32).trim();
                     treinoPorDia = Integer.parseInt(registro.substring(32,47).trim());
                     tipoDieta = registro.substring(47,57).trim();
 
-                    tipoCorredorId = Integer.parseInt(registro.substring(57,58).trim());
-                    tipoCorredorTipo= registro.substring(58,69);
-//
-                    tipoNadadorId = Integer.parseInt(registro.substring(69,71).trim());
-                    tipoNadadorTipo = registro.substring(71,81).trim();
+                    TipoCorredor tipoCorredorFila = tipoCorredorListaObj.poll();
+                    TipoNadador tipoNadadorFila = tipoNadadorListaObj.poll();
 
                     System.out.printf(
                             "%-15d %-15s %-15d %-10s %-2d %-10s %-2d %-10s\n",
@@ -224,21 +231,11 @@ public class Exportacao {
                             nomeAtleta,
                             treinoPorDia,
                             tipoDieta,
-                            tipoCorredorId,
-                            tipoCorredorTipo,
-                            tipoNadadorId,
-                            tipoNadadorTipo
+                            tipoCorredorFila.getId(),
+                            tipoCorredorFila.getTipo(),
+                            tipoNadadorFila.getId(),
+                            tipoNadadorFila.getTipo()
                     );
-                    TipoCorredor tipo = new TipoCorredor();
-                    tipo.setId(tipoCorredorId);
-                    tipo.setTipo(tipoCorredorTipo);
-
-                    TipoNadador tipoN = new TipoNadador();
-                    tipoN.setId(tipoNadadorId);
-                    tipoN.setTipo(tipoNadadorTipo);
-
-                    System.out.println(tipo);
-                    System.out.println(tipoN);
 
                     Atleta novoAtleta = new Atleta();
 
@@ -246,8 +243,9 @@ public class Exportacao {
                     novoAtleta.setNomeAtleta(nomeAtleta);
                     novoAtleta.setTreinoPorDia(treinoPorDia);
                     novoAtleta.setTipoDieta(tipoDieta);
-                    novoAtleta.setTipoCorredor(tipo);
-                    novoAtleta.setTipoNadador(tipoN);
+                    novoAtleta.setTipoCorredor(tipoCorredorFila);
+                    novoAtleta.setTipoNadador(tipoNadadorFila);
+                    //add na lista
                     atletaUpload.adiciona(novoAtleta);
 
                     contRegistro++;
