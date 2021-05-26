@@ -1,6 +1,8 @@
 package br.com.bandtec.avaliacaocontinuadatres.controller;
 
+import br.com.bandtec.avaliacaocontinuadatres.async.Scheduler;
 import br.com.bandtec.avaliacaocontinuadatres.exportacao.Exportacao;
+import br.com.bandtec.avaliacaocontinuadatres.exportacao.FilaObj;
 import br.com.bandtec.avaliacaocontinuadatres.exportacao.ListaObj;
 import br.com.bandtec.avaliacaocontinuadatres.exportacao.PilhaObj;
 import br.com.bandtec.avaliacaocontinuadatres.model.Atleta;
@@ -35,6 +37,9 @@ public class AtletaController {
     Exportacao exportacao = new Exportacao();
     PilhaObj<Integer> atletaPilhaObj = new PilhaObj<>(1);
     TipoController tipoController = new TipoController();
+
+    @Autowired
+    private Scheduler scheduler;
 
     @Autowired
     private AtletaRepository repository;
@@ -127,7 +132,7 @@ public class AtletaController {
     }
 
     @PostMapping("/async/novo-atleta")
-    public ResponseEntity postAsyncMethod(){
+    public ResponseEntity postAsyncMethod(@RequestBody Atleta novoAtleta){
         LocalDateTime previsao = LocalDateTime.now().plusSeconds(16);
         Integer numero = ThreadLocalRandom.current().nextInt(0,100);
 
@@ -144,23 +149,8 @@ public class AtletaController {
 //                TipoCorredor randomCorredor = new TipoCorredor(123,"plano");
 //                TipoNadador randomNadador = new TipoNadador(234,"costas");
 ////            tipocorredor getcorredor = tipoController.getTipoNadador().getBody();
-                TipoCorredor getCorredor = new TipoCorredor();
-                getCorredor.setId(1);
-                getCorredor.setTipo("borboleta");
-
-                TipoNadador getNadador = new TipoNadador();
-                getNadador.setId(1);
-                getNadador.setTipo("2km");
-
-                Atleta novoAtleta = new Atleta();
                 novoAtleta.setId(numero);
-                novoAtleta.setNomeAtleta("Felps");
-                novoAtleta.setTreinoPorDia(8);
-                novoAtleta.setTipoDieta("lowcarb");
-                novoAtleta.setTipoCorredor(getCorredor);
-                novoAtleta.setTipoNadador(getNadador);
-
-                repository.save(novoAtleta);
+                scheduler.atletaFilaObj.insert(novoAtleta);
 
             }catch (InterruptedException e){
                 e.printStackTrace();

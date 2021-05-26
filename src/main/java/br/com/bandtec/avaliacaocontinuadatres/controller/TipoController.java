@@ -1,5 +1,6 @@
 package br.com.bandtec.avaliacaocontinuadatres.controller;
 
+import br.com.bandtec.avaliacaocontinuadatres.async.Scheduler;
 import br.com.bandtec.avaliacaocontinuadatres.model.TipoCorredor;
 import br.com.bandtec.avaliacaocontinuadatres.model.TipoNadador;
 import br.com.bandtec.avaliacaocontinuadatres.repository.TipoCorredorRepository;
@@ -15,6 +16,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/tipo")
 public class TipoController {
+
 
     @Autowired
     private TipoNadadorRepository tipoNadadorRepository;
