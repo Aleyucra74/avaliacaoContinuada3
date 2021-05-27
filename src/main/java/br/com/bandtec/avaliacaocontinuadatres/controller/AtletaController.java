@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -51,7 +52,7 @@ public class AtletaController {
     private TipoNadadorRepository tipoNadadorRepository;
 
     @GetMapping
-    public ResponseEntity getAtletas(){ return ResponseEntity.status(200).body(repository.findAll());}
+    public ResponseEntity<List<Atleta>> getAtletas(){ return ResponseEntity.status(200).body(repository.findAll());}
 
     @GetMapping("/{id}")
     public ResponseEntity getAtletasById(@PathVariable Integer id){
@@ -59,7 +60,7 @@ public class AtletaController {
     }
 
     @PostMapping
-    public ResponseEntity postAtleta(@RequestBody Atleta atleta){
+    public ResponseEntity postAtleta(@RequestBody @Valid Atleta atleta){
         if (tipoNadadorRepository.existsById(atleta.getTipoNadador().getId()) || corredorRepository.existsById(atleta.getTipoCorredor().getId())) {
             atletaPilhaObj.push(atleta.getId());
             atletaPilhaObj.exibe();

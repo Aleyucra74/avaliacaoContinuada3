@@ -1,6 +1,8 @@
 package br.com.bandtec.avaliacaocontinuadatres.model;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
 
 @Entity
 public class Atleta {
@@ -8,10 +10,13 @@ public class Atleta {
     @Id
     private Integer id;
 
+    @NotBlank
     private String nomeAtleta;
 
+    @Positive
     private Integer treinoPorDia;
 
+    @NotBlank
     private String tipoDieta;
 
     @ManyToOne
