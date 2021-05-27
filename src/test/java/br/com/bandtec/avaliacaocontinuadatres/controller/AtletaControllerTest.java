@@ -92,7 +92,7 @@ class AtletaControllerTest {
         Atleta atleta = new Atleta();
         atleta.setId(1);
         Mockito.when(repository.deleteById(atleta.getId())).then("delete");
-        
+
     }
 
     @Test
